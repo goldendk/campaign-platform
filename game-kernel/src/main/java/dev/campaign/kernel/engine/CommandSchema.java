@@ -1,7 +1,7 @@
 package dev.campaign.kernel.engine;
 
 import dev.campaign.kernel.api.CommandSpec;
-import dev.campaign.kernel.api.Requires;
+import dev.campaign.kernel.api.RequiredTag;
 import dev.campaign.kernel.id.EntityId;
 import dev.campaign.kernel.id.FactionId;
 import dev.campaign.kernel.id.LocationId;
@@ -42,7 +42,7 @@ public final class CommandSchema {
                 list = true;
                 raw = element;
             }
-            Requires requires = rc.getAnnotation(Requires.class);
+            RequiredTag requires = rc.getAnnotation(RequiredTag.class);
             out.add(new Param(rc.getName(), typeOf(raw), list, requires == null ? null : requires.value()));
         }
         return out;

@@ -4,7 +4,7 @@ import dev.campaign.kernel.api.Command;
 import dev.campaign.kernel.api.CommandHandler;
 import dev.campaign.kernel.api.Ctx;
 import dev.campaign.kernel.api.Emission;
-import dev.campaign.kernel.api.Requires;
+import dev.campaign.kernel.api.RequiredTag;
 import dev.campaign.kernel.event.CoreEvent.EntityMoved;
 import dev.campaign.kernel.id.EntityId;
 import dev.campaign.kernel.id.LocationId;
@@ -22,7 +22,7 @@ import java.util.Optional;
  * prompt: "pick a mobile unit, then pick a path"), the handler holds the rules. Nothing else exists for it:
  * no controller, DTO, mapper or table. Whether this is "march an army" or "sail a freighter" is a theme matter.
  */
-public record MoveUnit(@Requires("mobile") EntityId unit, List<LocationId> path) implements Command {
+public record MoveUnit(@RequiredTag("mobile") EntityId unit, List<LocationId> path) implements Command {
 
     public MoveUnit {
         path = List.copyOf(path);
