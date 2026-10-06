@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>dev.campaign</groupId>
+  <artifactId>campaign-platform</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>campaign-platform</name>
+
+  <modules>
+    <module>game-kernel</module>
+    <module>game-json</module>
+    <module>game-testkit</module>
+    <module>rules-tiny-realms</module>
+    <module>theme-tiny-realms</module>
+    <module>scenario-tests</module>
+    <module>game-app</module>
+  </modules>
+
+  <properties>
+    <maven.compiler.release>21</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- Bump to the latest 4.1.x patch when you create the repo. -->
+    <spring-boot.version>4.1.0</spring-boot.version>
+    <!-- game-json uses Jackson 2 on purpose (see docs/ARCHITECTURE.md). Spring Boot 4 uses Jackson 3 internally;
+         the two coexist because game-app never hands our mapper to Spring MVC. -->
+    <jackson2.version>2.20.0</jackson2.version>
+
+    <!-- The enforcer rule below bans org.springframework.* everywhere except game-app, which flips this to true. -->
+    <campaign.allowSpring>false</campaign.allowSpring>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Order matters: first import wins, so Jackson 2 is pinned before the Spring Boot BOM. -->
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${jackson2.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <!-- The BOM only manages versions (JUnit etc.); importing it does not put Spring on any classpath. -->
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency><groupId>dev.campaign</groupId><artifactId>game-kernel</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>dev.campaign</groupId><artifactId>game-json</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>dev.campaign</groupId><artifactId>game-testkit</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>dev.campaign</groupId><artifactId>rules-tiny-realms</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>dev.campaign</groupId><artifactId>theme-tiny-realms</artifactId><version>${project.version}</version></dependency>
+      <dependency><groupId>dev.campaign</groupId><artifactId>scenario-tests</artifactId><version>${project.version}</version></dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.14.0</version>
+          <configuration>
+            <release>${maven.compiler.release}</release>
+            <parameters>true</parameters>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.5.3</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>3.5.0</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>no-spring-outside-game-app</id>
+            <phase>validate</phase>
+            <goals><goal>enforce</goal></goals>
+            <configuration>
+              <skip>${campaign.allowSpring}</skip>
+              <rules>
+                <bannedDependencies>
+                  <searchTransitive>true</searchTransitive>
+                  <excludes>
+                    <exclude>org.springframework:*</exclude>
+                    <exclude>org.springframework.*:*</exclude>
+                  </excludes>
+                  <message>Spring is only allowed in game-app. Put framework-free logic in the kernel/ruleset modules and adapt it in game-app.</message>
+                </bannedDependencies>
+              </rules>
+              <fail>true</fail>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
